@@ -1,4 +1,6 @@
-# Welcome to [Slidev](https://github.com/slidevjs/slidev)!
+# Hooks everywhere
+
+In today's frontend, can you escape hooks?
 
 To start the slide show:
 
