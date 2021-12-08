@@ -139,7 +139,11 @@ function RealStuff() {
 }
 ```
 
-<v-click>Un simple `if` met React en PLS</v-click>
+<v-click at="3">
+
+Un simple `if` met React en PLS
+
+</v-click>
 
 <!--
 Et puis c'est pas tout: ne parlons même pas d'`await`
@@ -196,24 +200,23 @@ Ne nous attardons pas..
 # Du code de 🪝 en Vue
 Voilà un exemple de code Vue 3 pour les curieux
 
-```ts {all|10|all}
-<script setup lang="ts">
-import { useIntervalFn } from "@vueuse/core";
+```ts {all|11|all}
+import { useInterval, useTimeAgo } from "@vueuse/core";
 
-const time = ref(new Date());
+const christmas = new Date("2021-12-25");
+const toChristmas = useTimeAgo(christmas);
 
-useIntervalFn(() => time.value = new Date(), 1000);
+const {counter, pause} = useInterval(400, {controls: true});
 
-watch(time, () => {
-  if (time.value > new Date("2021-12-25")) {
+watch(counter, () => {
+  if (Date.now() > christmas.getTime()) {
+    pause();
     alert("C'est Noël! 🎅");
   }
 });
 
-</script>
-
 <template>
-  {{time}}
+  Chistmas is {{toChristmas}} {{".".repeat(counter % 4)}}
 </template>
 ```
 

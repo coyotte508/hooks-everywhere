@@ -1,13 +1,21 @@
 <script setup lang="ts">
-import { ref } from "vue";
-import { useIntervalFn } from "@vueuse/core";
+import { watch } from "vue";
+import { useInterval, useTimeAgo } from "@vueuse/core";
 
-const time = ref(Date.now());
+const christmas = new Date("2021-12-25");
+const toChristmas = useTimeAgo(christmas);
 
-useIntervalFn(() => time.value = Date.now(), 1000);
+const {counter, pause} = useInterval(400, {controls: true});
+
+watch(counter, () => {
+  if (Date.now() > christmas.getTime()) {
+    pause();
+    alert("C'est Noël! 🎅");
+  }
+});
 
 </script>
 
 <template>
-  {{new Date(time)}}
+  Chistmas is {{toChristmas}} {{".".repeat(counter % 4)}}
 </template>
