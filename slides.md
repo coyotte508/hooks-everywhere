@@ -139,7 +139,7 @@ function RealStuff() {
 }
 ```
 
-<v-click>Un simple `if` suffit à faire déraper la machine</v-click>
+<v-click>Un simple `if` met React en PLS</v-click>
 
 <!--
 Et puis c'est pas tout: ne parlons même pas d'`await`
@@ -302,14 +302,8 @@ Dans le contexte immédiat du composant 😭
 A base de 🪝
 
 
-```ts {all|1|2|2-6|8|8-9|11-17|2,19|all}
-export function useUser() {
-  const { cached, set } = useCached(this);
-
-  if (cached) {
-    return cached;
-  }
-  
+```ts {all|1|2|2-3|5-11|13|all}
+export const useUser = defineStore(() => {
   const refreshToken = useRefreshToken();
   const user = writable<IUser | null>(null);
   
@@ -320,10 +314,19 @@ export function useUser() {
       }
     });
   }
-  
-  return set(user);
-}
+
+  return user;
+});
 ```
+
+<br/>
+<br/>
+
+<v-click at="7">
+
+  Inspiré par [Pinia](https://github.com/posva/pinia) 🍍
+  
+</v-click>
 
 
 ---
@@ -336,16 +339,19 @@ export function useUser() {
 import { getStores } from "$app/stores";
 import { get as $ } from "svelte/store";
 
-export function useCached<T>(key: any): { set: (val: T) => T; cached?: T } {
-  const session = $(getStores().session);
+export function defineStore<T>(fn: () => T): () => T {
+  return () => {
+    const session = $(getStores().session);
 
-  return {
-    cached: session.composition.get(key),
-    set: (val) => (session.composition.set(key, val), val),
-  };
+    if (!session.stores.has(fn)) {
+      session.stores.set(fn, fn());
+    }
+
+    return session.stores.get(fn);
+  }
 }
 ```
 
-<div class="text-10xl mt-5 text-center">
+<div class="text-10xl mt-2 text-center">
   🪝
 </div>
