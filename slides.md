@@ -239,7 +239,7 @@ La libération
   <div class="flex flex-row items-center justify-between -mt-30">
     <img src="https://kit.svelte.dev/_app/assets/svelte-kit-machine-f2b9147a.avif" class="w-80 h-80 -ml-15">
     
-<img src="https://web-tech.fr/wp-content/uploads/2018/05/TrollFace-768x432.jpg" class="w-50 h-30">
+<img src="/trollface.webp" class="w-40 h-30 mr-5">
   </div>
 </v-click>
 
