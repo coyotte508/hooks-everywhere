@@ -317,7 +317,7 @@ export const useUser = defineStore(() => {
     });
   }
 
-  return user;
+  return { user };
 });
 ```
 
@@ -333,27 +333,105 @@ export const useUser = defineStore(() => {
 
 ---
 
-# Sous le capot
+# Sous le capot - defineStore
 
 
 
 ```ts
-import { getStores } from "$app/stores";
-import { get as $ } from "svelte/store";
-
 export function defineStore<T>(fn: () => T): () => T {
   return () => {
-    const session = $(getStores().session);
+    const {data} = useSession(); 
 
-    if (!session.stores.has(fn)) {
-      session.stores.set(fn, fn());
+    if (!data.stores.has(fn)) {
+      data.stores.set(fn, fn());
     }
 
-    return session.stores.get(fn);
+    return data.stores.get(fn);
   }
 }
 ```
 
-<div class="text-10xl mt-2 text-center">
+<div class="text-10xl mt-8 text-center">
   🪝
 </div>
+
+
+---
+
+# Sous le capot - useSession
+
+```ts
+import { getStores } from "$app/stores";
+import type { Session } from "@/hooks";
+import { get as $, writable } from "svelte/store";
+
+export const loadSession = writable<Session | null>(null);
+
+type SessionData = { stores: Map<unknown, unknown>; fetch: typeof fetch };
+
+export function useSession(): { session: Session; data: SessionData } {
+  const session = $(loadSession) ?? ($(getStores().session) as Session);
+
+  const data = sessionData.get(session);
+
+  if (!data) {
+    throw new Error("Call useLoad before calls to useSession");
+  }
+
+  return {
+    session,
+    data,
+  };
+}
+
+export const sessionData = new WeakMap<Session, SessionData>();
+```
+
+---
+
+# Sous le capot - useLoad
+
+```ts
+import type { LoadInput } from "@sveltejs/kit";
+import { loadSession, sessionData } from "./useSession";
+
+type ReturnTypes<T> = T extends [...infer U, infer A]
+  ? A extends (...args: unknown[]) => unknown
+    ? ReturnType<A> & ReturnTypes<U>
+    : void
+  : void;
+
+export function useLoad<T extends Array<(...args: unknown[]) => unknown>>(input: LoadInput, ...fns: T): ReturnTypes<T> {
+  if (!sessionData.has(input.session)) {
+    sessionData.set(input.session, { stores: new Map(), fetch: input.fetch });
+  }
+  loadSession.set(input.session);
+
+  try {
+    return Object.assign({}, ...fns.map((fn) => fn()));
+  } finally {
+    loadSession.set(null);
+  }
+}
+```
+
+
+---
+
+# Sous le capot - utilisation de useLoad
+
+```ts
+<script context="module">
+export async function load(input: LoadInput) {
+  const { get, user } = useLoad(input, useRest, useUser);
+
+  user.set(await get("/account"));
+
+  return {
+    props: {
+      announcement: await get("/site/announcement"),
+    },
+  };
+}
+</script>
+```
